@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sell My House - Offer vs Loan Calculator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd', 400: '#60a5fa',
+              500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg: #0b1020; }
+    html, body { height: 100%; }
+    body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
+  </style>
+  <meta name="description" content="Quickly compare buyer offers against your mortgage balance and interest over different settlement periods.">
+</head>
+<body class="bg-slate-50 text-slate-900">
+  <header class="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-slate-200">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
+      <h1 class="text-xl sm:text-2xl font-semibold tracking-tight">Sell My House</h1>
+      <div class="flex items-center gap-3">
+        <label for="currency" class="text-sm text-slate-600">Currency</label>
+        <select id="currency" class="rounded-md border-slate-300 text-sm focus:border-primary-500 focus:ring-primary-500">
+          <option value="USD">USD</option>
+          <option value="AUD">AUD</option>
+          <option value="EUR">EUR</option>
+          <option value="GBP">GBP</option>
+        </select>
+        <a href="https://tailwindcss.com" target="_blank" rel="noreferrer" class="text-slate-500 hover:text-slate-700 text-sm">Tailwind</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+    <section class="mb-6">
+      <h2 class="text-2xl font-semibold">Offer vs Loan Calculator</h2>
+      <p class="text-slate-600 mt-1">Enter your loan details. We'll calculate compound interest for 30, 60, and 90 days and compare offers with settlement periods.</p>
+    </section>
+
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-1">
+        <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 sm:p-6">
+          <h3 class="font-semibold text-lg">Loan Details</h3>
+          <div class="mt-4 space-y-4">
+            <div>
+              <label for="loanAmount" class="block text-sm font-medium text-slate-700">Loan amount</label>
+              <div class="mt-1 relative rounded-md shadow-sm">
+                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                  <span id="loanCurrencySymbol" class="text-slate-500">$</span>
+                </div>
+                <input id="loanAmount" type="number" inputmode="decimal" class="block w-full rounded-md border-slate-300 pl-10 pr-3 focus:border-primary-500 focus:ring-primary-500" placeholder="500000" value="500000" min="0" step="0.01">
+              </div>
+            </div>
+
+            <div>
+              <label for="annualRate" class="block text-sm font-medium text-slate-700">Annual interest rate (%)</label>
+              <input id="annualRate" type="number" inputmode="decimal" class="mt-1 block w-full rounded-md border-slate-300 focus:border-primary-500 focus:ring-primary-500" placeholder="6.25" value="6" min="0" step="0.01">
+            </div>
+
+            <div>
+              <label for="compounding" class="block text-sm font-medium text-slate-700">Compounding frequency</label>
+              <select id="compounding" class="mt-1 block w-full rounded-md border-slate-300 focus:border-primary-500 focus:ring-primary-500">
+                <option value="365">Daily (365/year)</option>
+                <option value="12">Monthly (12/year)</option>
+                <option value="26">Fortnightly (26/year)</option>
+                <option value="52">Weekly (52/year)</option>
+              </select>
+            </div>
+
+            <div class="pt-2">
+              <button id="resetBtn" class="w-full inline-flex justify-center items-center rounded-md bg-slate-100 hover:bg-slate-200 text-slate-800 px-3 py-2 text-sm font-medium">Reset</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="lg:col-span-2">
+        <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 sm:p-6">
+          <h3 class="font-semibold text-lg">Interest Over Time</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4" id="interestCards">
+            <!-- Cards injected by JS -->
+          </div>
+          <p class="text-xs text-slate-500 mt-3" id="interestNote"></p>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 sm:p-6 mt-6">
+          <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+            <h3 class="font-semibold text-lg">Buyer Offers</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-6 gap-3 w-full sm:w-auto">
+              <div class="sm:col-span-3">
+                <label for="offerAmount" class="block text-sm font-medium text-slate-700">Offer amount</label>
+                <div class="mt-1 relative rounded-md shadow-sm">
+                  <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                    <span id="offerCurrencySymbol" class="text-slate-500">$</span>
+                  </div>
+                  <input id="offerAmount" type="number" inputmode="decimal" class="block w-full rounded-md border-slate-300 pl-10 pr-3 focus:border-primary-500 focus:ring-primary-500" placeholder="650000" min="0" step="0.01">
+                </div>
+              </div>
+              <div class="sm:col-span-2">
+                <label for="offerDays" class="block text-sm font-medium text-slate-700">Settlement (days)</label>
+                <input id="offerDays" type="number" inputmode="numeric" class="mt-1 block w-full rounded-md border-slate-300 focus:border-primary-500 focus:ring-primary-500" placeholder="30" min="0" step="1">
+              </div>
+              <div class="sm:col-span-1 flex items-end">
+                <button id="addOfferBtn" class="w-full inline-flex justify-center items-center rounded-md bg-primary-600 hover:bg-primary-700 text-white px-3 py-2 text-sm font-medium">Add</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <div class="overflow-x-auto">
+              <table class="min-w-full text-sm">
+                <thead>
+                  <tr class="text-left text-slate-600 border-b">
+                    <th class="py-2 pr-3">Offer</th>
+                    <th class="py-2 pr-3">Settlement</th>
+                    <th class="py-2 pr-3">Interest to Settle</th>
+                    <th class="py-2 pr-3">Net vs Loan</th>
+                    <th class="py-2 pr-3"></th>
+                  </tr>
+                </thead>
+                <tbody id="offersTbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="max-w-5xl mx-auto px-4 sm:px-6 py-8 text-center text-xs text-slate-500">
+    <p>For estimation only. Consult your lender for exact figures.</p>
+  </footer>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    function toNumber(value) {
+      const n = typeof value === 'number' ? value : parseFloat(String(value).replace(/[^0-9.\-]/g, ''));
+      return isFinite(n) ? n : 0;
+    }
+
+    function formatCurrency(n) {
+      const currency = state.currency || 'USD';
+      return new Intl.NumberFormat(undefined, { style: 'currency', currency, maximumFractionDigits: 2 }).format(n);
+    }
+
+    function formatPercent(n) {
+      return `${n.toFixed(2)}%`;
+    }
+
+    // Compound interest for t days with nominal annual rate r and m periods per year
+    function compoundInterest(principal, annualRatePct, days, periodsPerYear) {
+      const r = annualRatePct / 100;
+      const m = periodsPerYear;
+      const tYears = days / 365; // convert days to years
+      if (principal <= 0 || r <= 0 || days <= 0 || m <= 0) return 0;
+      const amount = principal * Math.pow(1 + r / m, m * tYears);
+      return amount - principal;
+    }
+
+    const state = {
+      loanAmount: 500000,
+      annualRate: 6,
+      compounding: 365,
+      currency: 'USD',
+      offers: [] // { id, amount, days }
+    };
+
+    function currencyToSymbol(code) {
+      switch (code) {
+        case 'USD': return '$';
+        case 'AUD': return 'A$';
+        case 'EUR': return '€';
+        case 'GBP': return '£';
+        default: return '$';
+      }
+    }
+
+    function updateCurrencySymbols() {
+      const symbol = currencyToSymbol(state.currency);
+      const loanSym = document.getElementById('loanCurrencySymbol');
+      const offerSym = document.getElementById('offerCurrencySymbol');
+      if (loanSym) loanSym.textContent = symbol;
+      if (offerSym) offerSym.textContent = symbol;
+    }
+
+    function readInputsToState() {
+      state.loanAmount = toNumber($("loanAmount").value);
+      state.annualRate = toNumber($("annualRate").value);
+      state.compounding = toNumber($("compounding").value);
+    }
+
+    function renderInterestCards() {
+      const container = $("interestCards");
+      const horizons = [30, 60, 90];
+      const cards = horizons.map((d) => {
+        const interest = compoundInterest(state.loanAmount, state.annualRate, d, state.compounding);
+        return `
+          <div class="rounded-lg border border-slate-200 p-4">
+            <div class="text-sm text-slate-600">${d} days</div>
+            <div class="mt-1 text-2xl font-semibold">${formatCurrency(interest)}</div>
+            <div class="mt-2 text-xs text-slate-500">Balance after ${d}d: ${formatCurrency(state.loanAmount + interest)}</div>
+          </div>
+        `;
+      }).join('');
+      container.innerHTML = cards;
+
+      const note = $("interestNote");
+      note.textContent = `Assumes ${formatPercent(state.annualRate)} p.a., ${state.compounding}x compounding, based on current balance ${formatCurrency(state.loanAmount)}.`;
+    }
+
+    function renderOffers() {
+      const tbody = $("offersTbody");
+      if (!state.offers.length) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-500">No offers yet. Add one above.</td></tr>`;
+        return;
+      }
+      const rows = state.offers.map((o) => {
+        const interestToSettle = compoundInterest(state.loanAmount, state.annualRate, o.days, state.compounding);
+        const totalToClearLoan = state.loanAmount + interestToSettle;
+        const netVsLoan = o.amount - totalToClearLoan;
+        const netClass = netVsLoan >= 0 ? 'text-emerald-700' : 'text-rose-700';
+        return `
+          <tr class="border-b last:border-0">
+            <td class="py-3 pr-3">${formatCurrency(o.amount)}</td>
+            <td class="py-3 pr-3">${o.days} days</td>
+            <td class="py-3 pr-3">${formatCurrency(interestToSettle)}</td>
+            <td class="py-3 pr-3 ${netClass}">${formatCurrency(netVsLoan)}</td>
+            <td class="py-3 pr-3">
+              <button data-id="${o.id}" class="remove-offer text-slate-500 hover:text-rose-600">Remove</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+      tbody.innerHTML = rows;
+
+      // Bind remove buttons
+      tbody.querySelectorAll('button.remove-offer').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          const id = e.currentTarget.getAttribute('data-id');
+          state.offers = state.offers.filter(o => String(o.id) !== String(id));
+          renderOffers();
+        });
+      });
+    }
+
+    function validatePositiveNumber(value, fieldName) {
+      const n = toNumber(value);
+      if (n < 0 || !isFinite(n)) {
+        alert(`${fieldName} must be a valid non-negative number.`);
+        return null;
+      }
+      return n;
+    }
+
+    function setupEvents() {
+      ["loanAmount", "annualRate", "compounding"].forEach((id) => {
+        $(id).addEventListener('input', () => {
+          readInputsToState();
+          renderInterestCards();
+          renderOffers();
+        });
+      });
+
+      $("currency").addEventListener('change', (e) => {
+        state.currency = e.target.value;
+        updateCurrencySymbols();
+        renderInterestCards();
+        renderOffers();
+      });
+
+      $("resetBtn").addEventListener('click', () => {
+        $("loanAmount").value = '500000';
+        $("annualRate").value = '6';
+        $("compounding").value = '365';
+        $("currency").value = 'USD';
+        readInputsToState();
+        state.currency = 'USD';
+        updateCurrencySymbols();
+        renderInterestCards();
+        renderOffers();
+      });
+
+      $("addOfferBtn").addEventListener('click', () => {
+        const amount = validatePositiveNumber($("offerAmount").value, 'Offer amount');
+        const days = validatePositiveNumber($("offerDays").value, 'Settlement days');
+        if (amount === null || days === null) return;
+        const id = Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+        state.offers.push({ id, amount, days });
+        $("offerAmount").value = '';
+        $("offerDays").value = '';
+        renderOffers();
+      });
+    }
+
+    // Init
+    readInputsToState();
+    updateCurrencySymbols();
+    renderInterestCards();
+    renderOffers();
+    setupEvents();
+  </script>
+</body>
+</html>
+
+
