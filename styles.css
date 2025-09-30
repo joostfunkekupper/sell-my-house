@@ -1,0 +1,17 @@
+/* Custom styles for Sell My House calculator */
+:root {
+  --bg: #0b1020;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+/* Custom Tailwind configuration */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
