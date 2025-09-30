@@ -276,12 +276,21 @@
         return `
           <tr class="border-b last:border-0">
             <td class="py-3 pr-3">${buyerName}</td>
-            <td class="py-3 pr-3">${formatCurrency(o.amount)}</td>
-            <td class="py-3 pr-3">${o.days} days</td>
+            <td class="py-3 pr-3">
+              <div class="relative">
+                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2">
+                  <span class="text-slate-500 text-sm">${currencyToSymbol(state.currency)}</span>
+                </div>
+                <input type="number" inputmode="decimal" class="block w-full rounded border-slate-300 pl-8 pr-2 py-1 text-sm focus:border-primary-500 focus:ring-primary-500" value="${o.amount}" min="0" step="0.01" data-id="${o.id}" data-field="amount">
+              </div>
+            </td>
+            <td class="py-3 pr-3">
+              <input type="number" inputmode="numeric" class="block w-full rounded border-slate-300 px-2 py-1 text-sm focus:border-primary-500 focus:ring-primary-500" value="${o.days}" min="0" step="1" data-id="${o.id}" data-field="days">
+            </td>
             <td class="py-3 pr-3">${formatCurrency(interestToSettle)}</td>
             <td class="py-3 pr-3 ${netClass}">${formatCurrency(netVsLoan)}</td>
             <td class="py-3 pr-3">
-              <button data-id="${o.id}" class="remove-offer text-slate-500 hover:text-rose-600">Remove</button>
+              <button data-id="${o.id}" class="remove-offer text-slate-500 hover:text-rose-600 text-sm">Remove</button>
             </td>
           </tr>
         `;
@@ -295,6 +304,23 @@
           state.offers = state.offers.filter(o => String(o.id) !== String(id));
           saveToStorage();
           renderOffers();
+        });
+      });
+
+      // Bind edit inputs
+      tbody.querySelectorAll('input[data-field]').forEach((input) => {
+        input.addEventListener('blur', (e) => {
+          const id = e.currentTarget.getAttribute('data-id');
+          const field = e.currentTarget.getAttribute('data-field');
+          const value = toNumber(e.currentTarget.value);
+          
+          const offer = state.offers.find(o => String(o.id) === String(id));
+          if (offer && value >= 0) {
+            offer[field] = value;
+            saveToStorage();
+            // Re-render to update calculated values
+            renderOffers();
+          }
         });
       });
     }
