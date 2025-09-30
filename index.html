@@ -57,9 +57,10 @@
       <p class="text-slate-600 dark:text-slate-400 mt-1">Enter your loan details. We'll calculate compound interest for 30, 60, and 90 days and compare offers with settlement periods.</p>
     </section>
 
-    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div class="lg:col-span-1">
-        <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-4 sm:p-6">
+    <section class="space-y-6">
+      <!-- Top row: Loan Details and Interest Over Time side by side -->
+      <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <div class="lg:col-span-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-4 sm:p-6">
           <h3 class="font-semibold text-lg text-slate-900 dark:text-slate-100">Loan Details</h3>
           <div class="mt-4 space-y-4">
             <div>
@@ -92,63 +93,77 @@
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="lg:col-span-2">
-        <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-4 sm:p-6">
+        <div class="lg:col-span-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-4 sm:p-6">
           <h3 class="font-semibold text-lg text-slate-900 dark:text-slate-100">Interest Over Time</h3>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4" id="interestCards">
             <!-- Cards injected by JS -->
           </div>
           <p class="text-xs text-slate-500 dark:text-slate-400 mt-3" id="interestNote"></p>
         </div>
+      </div>
 
-        <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-4 sm:p-6 mt-6">
-          <h3 class="font-semibold text-lg mb-4 text-slate-900 dark:text-slate-100">Buyer Offers</h3>
+      <!-- Bottom row: Buyer Offers spanning full width -->
+      <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-4 sm:p-6">
+        <h3 class="font-semibold text-lg mb-4 text-slate-900 dark:text-slate-100">Buyer Offers</h3>
+        <div class="space-y-4">
           <div class="grid grid-cols-1 sm:grid-cols-8 gap-3 w-full sm:w-auto">
-              <div class="sm:col-span-2">
-                <label for="offerName" class="block text-sm font-medium text-slate-700 dark:text-slate-300">Buyer name (optional)</label>
-                <input id="offerName" type="text" class="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 focus:border-primary-500 focus:ring-primary-500" placeholder="John Smith">
-              </div>
-              <div class="sm:col-span-2">
-                <label for="offerAmount" class="block text-sm font-medium text-slate-700 dark:text-slate-300">Offer amount</label>
-                <div class="mt-1 relative rounded-md shadow-sm">
-                  <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                    <span id="offerCurrencySymbol" class="text-slate-500 dark:text-slate-400">$</span>
-                  </div>
-                  <input id="offerAmount" type="number" inputmode="decimal" class="block w-full rounded-md border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 pl-10 pr-3 focus:border-primary-500 focus:ring-primary-500" placeholder="650000" min="0" step="0.01">
+            <div class="sm:col-span-2">
+              <label for="offerName" class="block text-sm font-medium text-slate-700 dark:text-slate-300">Buyer name (optional)</label>
+              <input id="offerName" type="text" class="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 focus:border-primary-500 focus:ring-primary-500" placeholder="John Smith">
+            </div>
+            <div class="sm:col-span-2">
+              <label for="offerAmount" class="block text-sm font-medium text-slate-700 dark:text-slate-300">Offer amount</label>
+              <div class="mt-1 relative rounded-md shadow-sm">
+                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                  <span id="offerCurrencySymbol" class="text-slate-500 dark:text-slate-400">$</span>
                 </div>
-              </div>
-              <div class="sm:col-span-2">
-                <label for="offerDays" class="block text-sm font-medium text-slate-700 dark:text-slate-300">Settlement (days)</label>
-                <input id="offerDays" type="number" inputmode="numeric" class="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 focus:border-primary-500 focus:ring-primary-500" placeholder="30" min="0" step="1">
-              </div>
-              <div class="sm:col-span-2 flex items-end">
-                <button id="addOfferBtn" class="w-full inline-flex justify-center items-center rounded-md bg-primary-600 hover:bg-primary-700 text-white px-3 py-2 text-sm font-medium">Add</button>
+                <input id="offerAmount" type="number" inputmode="decimal" class="block w-full rounded-md border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 pl-10 pr-3 focus:border-primary-500 focus:ring-primary-500" placeholder="650000" min="0" step="0.01">
               </div>
             </div>
-
-          <div class="mt-4">
-            <!-- Desktop table view -->
-            <div class="hidden sm:block overflow-x-auto">
-              <table class="min-w-full text-sm">
-                <thead>
-                  <tr class="text-left text-slate-600 dark:text-slate-400 border-b border-slate-200 dark:border-slate-600">
-                    <th class="py-2 pr-3">Buyer</th>
-                    <th class="py-2 pr-3">Offer</th>
-                    <th class="py-2 pr-3">Settlement</th>
-                    <th class="py-2 pr-3">Interest to Settle</th>
-                    <th class="py-2 pr-3">Net vs Loan</th>
-                    <th class="py-2 pr-3"></th>
-                  </tr>
-                </thead>
-                <tbody id="offersTbody"></tbody>
-              </table>
+            <div class="sm:col-span-2">
+              <label for="offerDays" class="block text-sm font-medium text-slate-700 dark:text-slate-300">Settlement (days)</label>
+              <input id="offerDays" type="number" inputmode="numeric" class="mt-1 block w-full rounded-md border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 focus:border-primary-500 focus:ring-primary-500" placeholder="30" min="0" step="1">
             </div>
-            
-            <!-- Mobile card view -->
-            <div class="sm:hidden space-y-3" id="offersMobile"></div>
+            <div class="sm:col-span-2 flex items-end">
+              <button id="addOfferBtn" class="w-full inline-flex justify-center items-center rounded-md bg-primary-600 hover:bg-primary-700 text-white px-3 py-2 text-sm font-medium">Add</button>
+            </div>
           </div>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="flex items-center">
+              <input id="subjectToFinance" type="checkbox" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-slate-300 dark:border-slate-600 dark:bg-slate-700 rounded">
+              <label for="subjectToFinance" class="ml-2 block text-sm text-slate-700 dark:text-slate-300">Subject to finance</label>
+            </div>
+            <div class="flex items-center">
+              <input id="buildingPestInspection" type="checkbox" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-slate-300 dark:border-slate-600 dark:bg-slate-700 rounded">
+              <label for="buildingPestInspection" class="ml-2 block text-sm text-slate-700 dark:text-slate-300">Building and Pest inspection</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <!-- Desktop table view -->
+          <div class="hidden sm:block overflow-x-auto">
+            <table class="min-w-full text-sm">
+              <thead>
+                <tr class="text-left text-slate-600 dark:text-slate-400 border-b border-slate-200 dark:border-slate-600">
+                  <th class="py-2 pr-3">Buyer</th>
+                  <th class="py-2 pr-3">Offer</th>
+                  <th class="py-2 pr-3">Settlement</th>
+                  <th class="py-2 pr-3">Finance</th>
+                  <th class="py-2 pr-3">B&P Inspection</th>
+                  <th class="py-2 pr-3">Interest to Settle</th>
+                  <th class="py-2 pr-3">Net vs Loan</th>
+                  <th class="py-2 pr-3"></th>
+                </tr>
+              </thead>
+              <tbody id="offersTbody"></tbody>
+            </table>
+          </div>
+          
+          <!-- Mobile card view -->
+          <div class="sm:hidden space-y-3" id="offersMobile"></div>
         </div>
       </div>
     </section>

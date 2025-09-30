@@ -134,7 +134,7 @@ function renderInterestCards() {
     return `
       <div class="rounded-lg border border-slate-200 dark:border-slate-600 p-4">
         <div class="text-sm text-slate-600 dark:text-slate-400">${d} days</div>
-        <div class="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">${formatCurrency(interest)}</div>
+        <div class="mt-1 text-1xl font-semibold text-slate-900 dark:text-slate-100">${formatCurrency(interest)}</div>
         <div class="mt-2 text-xs text-slate-500 dark:text-slate-400">Balance after ${d}d: ${formatCurrency(state.loanAmount + interest)}</div>
       </div>
     `;
@@ -150,7 +150,7 @@ function renderOffers() {
   const mobileContainer = $("offersMobile");
   
   if (!state.offers.length) {
-    tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-500 dark:text-slate-400">No offers yet. Add one above.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" class="py-6 text-center text-slate-500 dark:text-slate-400">No offers yet. Add one above.</td></tr>`;
     mobileContainer.innerHTML = `<div class="text-center text-slate-500 dark:text-slate-400 py-6">No offers yet. Add one above.</div>`;
     return;
   }
@@ -160,6 +160,10 @@ function renderOffers() {
     const netVsLoan = o.amount - totalToClearLoan;
     const netClass = netVsLoan >= 0 ? 'text-emerald-700' : 'text-rose-700';
     const buyerName = o.name && o.name.trim() ? o.name.trim() : '—';
+    const financeIcon = o.subjectToFinance ? '✓' : '✗';
+    const financeClass = o.subjectToFinance ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400 dark:text-slate-500';
+    const inspectionIcon = o.buildingPestInspection ? '✓' : '✗';
+    const inspectionClass = o.buildingPestInspection ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400 dark:text-slate-500';
     return `
       <tr class="border-b border-slate-200 dark:border-slate-600 last:border-0">
         <td class="py-3 pr-3 text-slate-900 dark:text-slate-100">${buyerName}</td>
@@ -173,6 +177,12 @@ function renderOffers() {
         </td>
         <td class="py-3 pr-3">
           <input type="number" inputmode="numeric" class="block w-full rounded border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 px-2 py-1 text-sm focus:border-primary-500 focus:ring-primary-500" value="${o.days}" min="0" step="1" data-id="${o.id}" data-field="days">
+        </td>
+        <td class="py-3 pr-3 text-center">
+          <input type="checkbox" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-slate-300 dark:border-slate-600 dark:bg-slate-700 rounded" ${o.subjectToFinance ? 'checked' : ''} data-id="${o.id}" data-field="subjectToFinance">
+        </td>
+        <td class="py-3 pr-3 text-center">
+          <input type="checkbox" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-slate-300 dark:border-slate-600 dark:bg-slate-700 rounded" ${o.buildingPestInspection ? 'checked' : ''} data-id="${o.id}" data-field="buildingPestInspection">
         </td>
         <td class="py-3 pr-3 text-slate-900 dark:text-slate-100">${formatCurrency(interestToSettle)}</td>
         <td class="py-3 pr-3 ${netClass}">${formatCurrency(netVsLoan)}</td>
@@ -223,6 +233,16 @@ function renderOffers() {
             <input type="number" inputmode="numeric" class="block w-full rounded border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 px-2 py-1 text-sm focus:border-primary-500 focus:ring-primary-500" value="${o.days}" min="0" step="1" data-id="${o.id}" data-field="days">
           </div>
         </div>
+        <div class="mt-3 grid grid-cols-2 gap-3 text-sm">
+          <div class="flex items-center">
+            <input type="checkbox" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-slate-300 dark:border-slate-600 dark:bg-slate-700 rounded" ${o.subjectToFinance ? 'checked' : ''} data-id="${o.id}" data-field="subjectToFinance">
+            <label class="ml-2 text-xs text-slate-700 dark:text-slate-300">Subject to finance</label>
+          </div>
+          <div class="flex items-center">
+            <input type="checkbox" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-slate-300 dark:border-slate-600 dark:bg-slate-700 rounded" ${o.buildingPestInspection ? 'checked' : ''} data-id="${o.id}" data-field="buildingPestInspection">
+            <label class="ml-2 text-xs text-slate-700 dark:text-slate-300">Building & Pest</label>
+          </div>
+        </div>
         <div class="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
           <div class="grid grid-cols-2 gap-3 text-sm">
             <div>
@@ -252,14 +272,21 @@ function renderOffers() {
 
   // Bind edit inputs (both desktop and mobile)
   document.querySelectorAll('input[data-field]').forEach((input) => {
-    input.addEventListener('blur', (e) => {
+    const eventType = input.type === 'checkbox' ? 'change' : 'blur';
+    input.addEventListener(eventType, (e) => {
       const id = e.currentTarget.getAttribute('data-id');
       const field = e.currentTarget.getAttribute('data-field');
-      const value = toNumber(e.currentTarget.value);
       
       const offer = state.offers.find(o => String(o.id) === String(id));
-      if (offer && value >= 0) {
-        offer[field] = value;
+      if (offer) {
+        if (input.type === 'checkbox') {
+          offer[field] = e.currentTarget.checked;
+        } else {
+          const value = toNumber(e.currentTarget.value);
+          if (value >= 0) {
+            offer[field] = value;
+          }
+        }
         saveToStorage();
         // Re-render to update calculated values
         renderOffers();
@@ -317,10 +344,14 @@ function setupEvents() {
     if (amount === null || days === null) return;
     const id = Date.now().toString(36) + Math.random().toString(36).slice(2,6);
     const name = $("offerName").value.trim();
-    state.offers.push({ id, name, amount, days });
+    const subjectToFinance = $("subjectToFinance").checked;
+    const buildingPestInspection = $("buildingPestInspection").checked;
+    state.offers.push({ id, name, amount, days, subjectToFinance, buildingPestInspection });
     $("offerName").value = '';
     $("offerAmount").value = '';
     $("offerDays").value = '';
+    $("subjectToFinance").checked = false;
+    $("buildingPestInspection").checked = false;
     saveToStorage();
     renderOffers();
   });
