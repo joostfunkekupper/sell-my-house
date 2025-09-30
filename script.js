@@ -154,7 +154,16 @@ function renderOffers() {
     mobileContainer.innerHTML = `<div class="text-center text-slate-500 dark:text-slate-400 py-6">No offers yet. Add one above.</div>`;
     return;
   }
-  const rows = state.offers.map((o) => {
+  // Sort offers by Net vs Loan (highest first)
+  const sortedOffers = [...state.offers].sort((a, b) => {
+    const aInterest = compoundInterest(state.loanAmount, state.annualRate, a.days, state.compounding);
+    const bInterest = compoundInterest(state.loanAmount, state.annualRate, b.days, state.compounding);
+    const aNetVsLoan = a.amount - (state.loanAmount + aInterest);
+    const bNetVsLoan = b.amount - (state.loanAmount + bInterest);
+    return bNetVsLoan - aNetVsLoan; // Descending order (highest first)
+  });
+
+  const rows = sortedOffers.map((o) => {
     const interestToSettle = compoundInterest(state.loanAmount, state.annualRate, o.days, state.compounding);
     const totalToClearLoan = state.loanAmount + interestToSettle;
     const netVsLoan = o.amount - totalToClearLoan;
@@ -198,8 +207,8 @@ function renderOffers() {
   }).join('');
   tbody.innerHTML = rows;
 
-  // Mobile card view
-  const mobileCards = state.offers.map((o) => {
+  // Mobile card view (using the same sorted offers)
+  const mobileCards = sortedOffers.map((o) => {
     const interestToSettle = compoundInterest(state.loanAmount, state.annualRate, o.days, state.compounding);
     const totalToClearLoan = state.loanAmount + interestToSettle;
     const netVsLoan = o.amount - totalToClearLoan;
