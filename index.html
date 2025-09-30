@@ -181,6 +181,39 @@
       offers: [] // { id, amount, days }
     };
 
+    const STORAGE_KEY = 'sellMyHouseData';
+
+    function saveToStorage() {
+      try {
+        const dataToSave = {
+          loanAmount: state.loanAmount,
+          annualRate: state.annualRate,
+          compounding: state.compounding,
+          currency: state.currency,
+          offers: state.offers
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+      } catch (e) {
+        console.warn('Failed to save to localStorage:', e);
+      }
+    }
+
+    function loadFromStorage() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (!saved) return;
+        
+        const data = JSON.parse(saved);
+        if (data.loanAmount !== undefined) state.loanAmount = data.loanAmount;
+        if (data.annualRate !== undefined) state.annualRate = data.annualRate;
+        if (data.compounding !== undefined) state.compounding = data.compounding;
+        if (data.currency !== undefined) state.currency = data.currency;
+        if (Array.isArray(data.offers)) state.offers = data.offers;
+      } catch (e) {
+        console.warn('Failed to load from localStorage:', e);
+      }
+    }
+
     function currencyToSymbol(code) {
       switch (code) {
         case 'USD': return '$';
@@ -203,6 +236,7 @@
       state.loanAmount = toNumber($("loanAmount").value);
       state.annualRate = toNumber($("annualRate").value);
       state.compounding = toNumber($("compounding").value);
+      saveToStorage();
     }
 
     function renderInterestCards() {
@@ -254,6 +288,7 @@
         btn.addEventListener('click', (e) => {
           const id = e.currentTarget.getAttribute('data-id');
           state.offers = state.offers.filter(o => String(o.id) !== String(id));
+          saveToStorage();
           renderOffers();
         });
       });
@@ -280,6 +315,7 @@
       $("currency").addEventListener('change', (e) => {
         state.currency = e.target.value;
         updateCurrencySymbols();
+        saveToStorage();
         renderInterestCards();
         renderOffers();
       });
@@ -289,9 +325,11 @@
         $("annualRate").value = '6';
         $("compounding").value = '365';
         $("currency").value = 'USD';
+        state.offers = [];
         readInputsToState();
         state.currency = 'USD';
         updateCurrencySymbols();
+        saveToStorage();
         renderInterestCards();
         renderOffers();
       });
@@ -304,12 +342,17 @@
         state.offers.push({ id, amount, days });
         $("offerAmount").value = '';
         $("offerDays").value = '';
+        saveToStorage();
         renderOffers();
       });
     }
 
     // Init
-    readInputsToState();
+    loadFromStorage();
+    $("loanAmount").value = state.loanAmount;
+    $("annualRate").value = state.annualRate;
+    $("compounding").value = state.compounding;
+    $("currency").value = state.currency;
     updateCurrencySymbols();
     renderInterestCards();
     renderOffers();
