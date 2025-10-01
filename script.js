@@ -173,8 +173,9 @@ function renderOffers() {
     const financeClass = o.subjectToFinance ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400 dark:text-slate-500';
     const inspectionIcon = o.buildingPestInspection ? '✓' : '✗';
     const inspectionClass = o.buildingPestInspection ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400 dark:text-slate-500';
+    const hasNotes = o.notes && o.notes.trim();
     return `
-      <tr class="border-b border-slate-200 dark:border-slate-600 last:border-0">
+      <tr class="border-b border-slate-200 dark:border-slate-600 ${hasNotes ? '' : 'last:border-0'}">
         <td class="py-3 pr-3 text-slate-900 dark:text-slate-100">${buyerName}</td>
         <td class="py-3 pr-3">
           <div class="relative">
@@ -211,6 +212,16 @@ function renderOffers() {
           </button>
         </td>
       </tr>
+      ${hasNotes ? `
+      <tr class="border-b border-slate-200 dark:border-slate-600 last:border-0">
+        <td colspan="9" class="px-3 pb-3 pt-0">
+          <div class="bg-slate-50 dark:bg-slate-900 rounded-md p-3">
+            <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">Notes:</div>
+            <textarea class="w-full text-sm text-slate-700 dark:text-slate-300 bg-transparent border-none resize-none focus:ring-0 focus:outline-none p-0" rows="${Math.max(1, Math.ceil(o.notes.length / 80))}" data-id="${o.id}" data-field="notes">${o.notes}</textarea>
+          </div>
+        </td>
+      </tr>
+      ` : ''}
     `;
   }).join('');
   tbody.innerHTML = rows;
@@ -283,6 +294,12 @@ function renderOffers() {
             </div>
           </div>
         </div>
+        ${o.notes && o.notes.trim() ? `
+        <div class="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
+          <div class="text-xs text-slate-500 dark:text-slate-400 mb-2">Notes:</div>
+          <textarea class="w-full text-sm text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded px-2 py-1 focus:border-primary-500 focus:ring-primary-500 resize-none" rows="${Math.max(2, Math.ceil(o.notes.length / 50))}" data-id="${o.id}" data-field="notes">${o.notes}</textarea>
+        </div>
+        ` : ''}
       </div>
     `;
   }).join('');
@@ -298,8 +315,8 @@ function renderOffers() {
     });
   });
 
-  // Bind edit inputs (both desktop and mobile)
-  document.querySelectorAll('input[data-field]').forEach((input) => {
+  // Bind edit inputs and textareas (both desktop and mobile)
+  document.querySelectorAll('input[data-field], textarea[data-field]').forEach((input) => {
     const eventType = input.type === 'checkbox' ? 'change' : 'blur';
     input.addEventListener(eventType, (e) => {
       const id = e.currentTarget.getAttribute('data-id');
@@ -309,6 +326,9 @@ function renderOffers() {
       if (offer) {
         if (input.type === 'checkbox') {
           offer[field] = e.currentTarget.checked;
+        } else if (input.tagName.toLowerCase() === 'textarea') {
+          // Handle textarea (notes)
+          offer[field] = e.currentTarget.value;
         } else {
           const value = toNumber(e.currentTarget.value);
           if (field === 'deposit') {
@@ -395,13 +415,15 @@ function setupEvents() {
     
     const id = Date.now().toString(36) + Math.random().toString(36).slice(2,6);
     const name = $("offerName").value.trim();
+    const notes = $("offerNotes").value.trim();
     const subjectToFinance = $("subjectToFinance").checked;
     const buildingPestInspection = $("buildingPestInspection").checked;
-    state.offers.push({ id, name, amount, days, deposit, subjectToFinance, buildingPestInspection });
+    state.offers.push({ id, name, amount, days, deposit, notes, subjectToFinance, buildingPestInspection });
     $("offerName").value = '';
     $("offerAmount").value = '';
     $("offerDays").value = '';
     $("offerDeposit").value = '';
+    $("offerNotes").value = '';
     $("subjectToFinance").checked = false;
     $("buildingPestInspection").checked = false;
     saveToStorage();
