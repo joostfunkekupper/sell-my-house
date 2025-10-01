@@ -167,7 +167,7 @@ function renderOffers() {
     const interestToSettle = compoundInterest(state.loanAmount, state.annualRate, o.days, state.compounding);
     const totalToClearLoan = state.loanAmount + interestToSettle;
     const netVsLoan = o.amount - totalToClearLoan;
-    const netClass = netVsLoan >= 0 ? 'text-emerald-700' : 'text-rose-700';
+    const netClass = netVsLoan >= 0 ? 'text-green-700' : 'text-red-700';
     const buyerName = o.name && o.name.trim() ? o.name.trim() : '—';
     const financeIcon = o.subjectToFinance ? '✓' : '✗';
     const financeClass = o.subjectToFinance ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400 dark:text-slate-500';
@@ -212,7 +212,7 @@ function renderOffers() {
     const interestToSettle = compoundInterest(state.loanAmount, state.annualRate, o.days, state.compounding);
     const totalToClearLoan = state.loanAmount + interestToSettle;
     const netVsLoan = o.amount - totalToClearLoan;
-    const netClass = netVsLoan >= 0 ? 'text-emerald-700' : 'text-rose-700';
+    const netClass = netVsLoan >= 0 ? 'text-green-700' : 'text-red-700';
     const buyerName = o.name && o.name.trim() ? o.name.trim() : '—';
     return `
       <div class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4">
