@@ -150,7 +150,7 @@ function renderOffers() {
   const mobileContainer = $("offersMobile");
   
   if (!state.offers.length) {
-    tbody.innerHTML = `<tr><td colspan="8" class="py-6 text-center text-slate-500 dark:text-slate-400">No offers yet. Add one above.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" class="py-6 text-center text-slate-500 dark:text-slate-400">No offers yet. Add one above.</td></tr>`;
     mobileContainer.innerHTML = `<div class="text-center text-slate-500 dark:text-slate-400 py-6">No offers yet. Add one above.</div>`;
     return;
   }
@@ -186,6 +186,14 @@ function renderOffers() {
         </td>
         <td class="py-3 pr-3">
           <input type="number" inputmode="numeric" class="block w-full rounded border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 px-2 py-1 text-sm focus:border-primary-500 focus:ring-primary-500" value="${o.days}" min="0" step="1" data-id="${o.id}" data-field="days">
+        </td>
+        <td class="py-3 pr-3">
+          <div class="relative">
+            <input type="number" inputmode="decimal" class="block w-full rounded border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 pr-6 pl-2 py-1 text-sm focus:border-primary-500 focus:ring-primary-500" value="${o.deposit || 0}" min="0" max="100" step="0.1" data-id="${o.id}" data-field="deposit">
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+              <span class="text-slate-500 dark:text-slate-400 text-xs">%</span>
+            </div>
+          </div>
         </td>
         <td class="py-3 pr-3 text-center">
           <input type="checkbox" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-slate-300 dark:border-slate-600 dark:bg-slate-700 rounded" ${o.subjectToFinance ? 'checked' : ''} data-id="${o.id}" data-field="subjectToFinance">
@@ -242,6 +250,17 @@ function renderOffers() {
             <input type="number" inputmode="numeric" class="block w-full rounded border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 px-2 py-1 text-sm focus:border-primary-500 focus:ring-primary-500" value="${o.days}" min="0" step="1" data-id="${o.id}" data-field="days">
           </div>
         </div>
+        <div class="mt-3 grid grid-cols-1 gap-3 text-sm">
+          <div>
+            <label class="block text-xs text-slate-500 dark:text-slate-400 mb-1">Deposit (%)</label>
+            <div class="relative">
+              <input type="number" inputmode="decimal" class="block w-full rounded border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 pr-6 pl-2 py-1 text-sm focus:border-primary-500 focus:ring-primary-500" value="${o.deposit || 0}" min="0" max="100" step="0.1" data-id="${o.id}" data-field="deposit">
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                <span class="text-slate-500 dark:text-slate-400 text-xs">%</span>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="mt-3 grid grid-cols-2 gap-3 text-sm">
           <div class="flex items-center">
             <input type="checkbox" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-slate-300 dark:border-slate-600 dark:bg-slate-700 rounded" ${o.subjectToFinance ? 'checked' : ''} data-id="${o.id}" data-field="subjectToFinance">
@@ -292,7 +311,12 @@ function renderOffers() {
           offer[field] = e.currentTarget.checked;
         } else {
           const value = toNumber(e.currentTarget.value);
-          if (value >= 0) {
+          if (field === 'deposit') {
+            // Validate deposit percentage (0-100)
+            if (value >= 0 && value <= 100) {
+              offer[field] = value;
+            }
+          } else if (value >= 0) {
             offer[field] = value;
           }
         }
@@ -308,6 +332,15 @@ function validatePositiveNumber(value, fieldName) {
   const n = toNumber(value);
   if (n < 0 || !isFinite(n)) {
     alert(`${fieldName} must be a valid non-negative number.`);
+    return null;
+  }
+  return n;
+}
+
+function validateDepositPercentage(value, fieldName) {
+  const n = toNumber(value);
+  if (n < 0 || n > 100 || !isFinite(n)) {
+    alert(`${fieldName} must be a valid percentage between 0 and 100.`);
     return null;
   }
   return n;
@@ -351,14 +384,24 @@ function setupEvents() {
     const amount = validatePositiveNumber($("offerAmount").value, 'Offer amount');
     const days = validatePositiveNumber($("offerDays").value, 'Settlement days');
     if (amount === null || days === null) return;
+    
+    // Validate deposit percentage (optional, but if provided must be valid)
+    const depositValue = $("offerDeposit").value.trim();
+    let deposit = 0; // Default to 0% if not provided
+    if (depositValue !== '') {
+      deposit = validateDepositPercentage(depositValue, 'Deposit percentage');
+      if (deposit === null) return;
+    }
+    
     const id = Date.now().toString(36) + Math.random().toString(36).slice(2,6);
     const name = $("offerName").value.trim();
     const subjectToFinance = $("subjectToFinance").checked;
     const buildingPestInspection = $("buildingPestInspection").checked;
-    state.offers.push({ id, name, amount, days, subjectToFinance, buildingPestInspection });
+    state.offers.push({ id, name, amount, days, deposit, subjectToFinance, buildingPestInspection });
     $("offerName").value = '';
     $("offerAmount").value = '';
     $("offerDays").value = '';
+    $("offerDeposit").value = '';
     $("subjectToFinance").checked = false;
     $("buildingPestInspection").checked = false;
     saveToStorage();
