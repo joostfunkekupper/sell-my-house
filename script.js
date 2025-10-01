@@ -222,7 +222,7 @@ function renderOffers() {
               </div>
             </div>
             <div>
-              <label class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Settlement (days)</label>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Settlement</label>
               <input type="number" inputmode="numeric" class="mt-1 block w-full rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 px-3 py-2 text-sm focus:border-primary-500 focus:ring-primary-500" value="${o.days}" min="0" step="1" data-id="${o.id}" data-field="days">
             </div>
             <div>
@@ -296,7 +296,7 @@ function renderOffers() {
             </div>
           </div>
           <div>
-            <label class="block text-xs text-slate-500 dark:text-slate-400 mb-1">Settlement (days)</label>
+            <label class="block text-xs text-slate-500 dark:text-slate-400 mb-1">Settlement</label>
             <input type="number" inputmode="numeric" class="block w-full rounded border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 px-2 py-1 text-sm focus:border-primary-500 focus:ring-primary-500" value="${o.days}" min="0" step="1" data-id="${o.id}" data-field="days">
           </div>
         </div>
