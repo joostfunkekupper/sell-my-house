@@ -146,88 +146,138 @@ function renderInterestCards() {
 }
 
 function renderOffers() {
-  const tbody = $("offersTbody");
+  const desktopContainer = $("offersDesktop");
   const mobileContainer = $("offersMobile");
-  
+
   if (!state.offers.length) {
-    tbody.innerHTML = `<tr><td colspan="9" class="py-6 text-center text-slate-500 dark:text-slate-400">No offers yet. Add one above.</td></tr>`;
+    if (desktopContainer) {
+      desktopContainer.innerHTML = `<div class="rounded-2xl border border-dashed border-slate-300 dark:border-slate-700/70 bg-white/60 dark:bg-slate-900/30 px-4 py-10 text-center text-sm text-slate-500 dark:text-slate-400">No offers yet. Add one above.</div>`;
+    }
     mobileContainer.innerHTML = `<div class="text-center text-slate-500 dark:text-slate-400 py-6">No offers yet. Add one above.</div>`;
     return;
   }
-  // Sort offers by Net vs Loan (highest first)
+
   const sortedOffers = [...state.offers].sort((a, b) => {
     const aInterest = compoundInterest(state.loanAmount, state.annualRate, a.days, state.compounding);
     const bInterest = compoundInterest(state.loanAmount, state.annualRate, b.days, state.compounding);
     const aNetVsLoan = a.amount - (state.loanAmount + aInterest);
     const bNetVsLoan = b.amount - (state.loanAmount + bInterest);
-    return bNetVsLoan - aNetVsLoan; // Descending order (highest first)
+    return bNetVsLoan - aNetVsLoan;
   });
 
-  const rows = sortedOffers.map((o) => {
-    const interestToSettle = compoundInterest(state.loanAmount, state.annualRate, o.days, state.compounding);
-    const totalToClearLoan = state.loanAmount + interestToSettle;
-    const netVsLoan = o.amount - totalToClearLoan;
-    const netClass = netVsLoan >= 0 ? 'text-green-700' : 'text-red-700';
-    const buyerName = o.name && o.name.trim() ? o.name.trim() : '—';
-    const financeIcon = o.subjectToFinance ? '✓' : '✗';
-    const financeClass = o.subjectToFinance ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400 dark:text-slate-500';
-    const inspectionIcon = o.buildingPestInspection ? '✓' : '✗';
-    const inspectionClass = o.buildingPestInspection ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400 dark:text-slate-500';
-    return `
-      <tr class="border-b border-slate-200 dark:border-slate-600 last:border-0">
-        <td class="py-3 pr-3 text-slate-900 dark:text-slate-100">${buyerName}</td>
-        <td class="py-3 pr-3">
-          <div class="relative">
-            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2">
-              <span class="text-slate-500 dark:text-slate-400 text-sm">${currencyToSymbol(state.currency)}</span>
-            </div>
-            <input type="number" inputmode="decimal" class="block w-full rounded border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 pl-8 pr-2 py-1 text-sm focus:border-primary-500 focus:ring-primary-500" value="${o.amount}" min="0" step="0.01" data-id="${o.id}" data-field="amount">
-          </div>
-        </td>
-        <td class="py-3 pr-3">
-          <input type="number" inputmode="numeric" class="block w-full rounded border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 px-2 py-1 text-sm focus:border-primary-500 focus:ring-primary-500" value="${o.days}" min="0" step="1" data-id="${o.id}" data-field="days">
-        </td>
-        <td class="py-3 pr-3">
-          <div class="relative">
-            <input type="number" inputmode="decimal" class="block w-full rounded border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 pr-6 pl-2 py-1 text-sm focus:border-primary-500 focus:ring-primary-500" value="${o.deposit || 0}" min="0" max="100" step="0.1" data-id="${o.id}" data-field="deposit">
-            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-              <span class="text-slate-500 dark:text-slate-400 text-xs">%</span>
-            </div>
-          </div>
-        </td>
-        <td class="py-3 pr-3 text-center">
-          <input type="checkbox" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-slate-300 dark:border-slate-600 dark:bg-slate-700 rounded" ${o.subjectToFinance ? 'checked' : ''} data-id="${o.id}" data-field="subjectToFinance">
-        </td>
-        <td class="py-3 pr-3 text-center">
-          <input type="checkbox" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-slate-300 dark:border-slate-600 dark:bg-slate-700 rounded" ${o.buildingPestInspection ? 'checked' : ''} data-id="${o.id}" data-field="buildingPestInspection">
-        </td>
-        <td class="py-3 pr-3 text-slate-900 dark:text-slate-100">${formatCurrency(interestToSettle)}</td>
-        <td class="py-3 pr-3 ${netClass}">${formatCurrency(netVsLoan)}</td>
-        <td class="py-3 pr-3">
-          <button data-id="${o.id}" class="remove-offer text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 text-sm" title="Remove offer">
+  if (desktopContainer) {
+    const cardMarkup = sortedOffers.map((o, index) => {
+      const interestToSettle = compoundInterest(state.loanAmount, state.annualRate, o.days, state.compounding);
+      const totalToClearLoan = state.loanAmount + interestToSettle;
+      const netVsLoan = o.amount - totalToClearLoan;
+      const netPositive = netVsLoan >= 0;
+      const netClass = netPositive ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400';
+      const buyerName = o.name && o.name.trim() ? o.name.trim() : '—';
+      const hasNotes = o.notes && o.notes.trim();
+      const isBestOffer = index === 0;
+      const cardAccent = isBestOffer
+        ? 'border-primary-200/80 bg-primary-50/60 dark:border-primary-800/70 dark:bg-primary-900/15 shadow-sm'
+        : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/40';
+      const bestBadge = isBestOffer
+        ? `<span class="inline-flex items-center rounded-full bg-primary-100/90 px-2 py-0.5 text-[11px] font-medium text-primary-700 dark:bg-primary-900/60 dark:text-primary-200">Top offer</span>`
+        : '';
+      const notesHint = hasNotes
+        ? `<span class="inline-flex items-center gap-1 rounded-full bg-slate-100/80 px-2 py-0.5 text-[11px] font-medium text-slate-500 dark:bg-slate-800/70 dark:text-slate-300">
+              <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M12 4h9"/><rect x="3" y="9" width="13" height="6" rx="2"/></svg>
+              Notes added
+            </span>`
+        : '';
+      const tagRow = bestBadge || notesHint
+        ? `<div class="mt-2 flex flex-wrap items-center gap-2">${bestBadge}${notesHint}</div>`
+        : '';
+
+      return `
+        <article class="relative rounded-2xl border ${cardAccent} px-5 pb-5 pt-6 transition-colors hover:border-primary-300/70 dark:hover:border-primary-700/70">
+          <button data-id="${o.id}" class="remove-offer absolute top-4 right-4 inline-flex h-8 w-8 items-center justify-center rounded-full border border-transparent bg-slate-100/90 text-slate-500 transition-colors hover:bg-rose-50 hover:text-rose-600 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-rose-950/60 dark:hover:text-rose-300" title="Remove offer">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
             </svg>
           </button>
-        </td>
-      </tr>
-    `;
-  }).join('');
-  tbody.innerHTML = rows;
+          <div class="flex flex-wrap items-start gap-4 pr-10">
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Buyer</div>
+              <div class="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">${buyerName}</div>
+              ${tagRow}
+            </div>
+            <div class="ml-auto text-right">
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Interest to settle</div>
+              <div class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">${formatCurrency(interestToSettle)}</div>
+              <div class="mt-3 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Net vs loan</div>
+              <div class="mt-1 text-base font-semibold ${netClass}">${formatCurrency(netVsLoan)}</div>
+            </div>
+          </div>
+          <div class="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Offer amount</label>
+              <div class="mt-1 relative">
+                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                  <span class="text-slate-500 dark:text-slate-400 text-sm">${currencyToSymbol(state.currency)}</span>
+                </div>
+                <input type="number" inputmode="decimal" class="block w-full rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 pl-9 pr-3 py-2 text-sm focus:border-primary-500 focus:ring-primary-500" value="${o.amount}" min="0" step="0.01" data-id="${o.id}" data-field="amount">
+              </div>
+            </div>
+            <div>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Settlement (days)</label>
+              <input type="number" inputmode="numeric" class="mt-1 block w-full rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 px-3 py-2 text-sm focus:border-primary-500 focus:ring-primary-500" value="${o.days}" min="0" step="1" data-id="${o.id}" data-field="days">
+            </div>
+            <div>
+              <label class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Deposit (%)</label>
+              <div class="mt-1 relative">
+                <input type="number" inputmode="decimal" class="block w-full rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 pr-9 pl-3 py-2 text-sm focus:border-primary-500 focus:ring-primary-500" value="${o.deposit || 0}" min="0" max="100" step="0.1" data-id="${o.id}" data-field="deposit">
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                  <span class="text-slate-500 dark:text-slate-400 text-xs font-medium">%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-5 flex flex-wrap items-center gap-4">
+            <label class="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+              <input type="checkbox" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-slate-300 dark:border-slate-600 dark:bg-slate-800 rounded" ${o.subjectToFinance ? 'checked' : ''} data-id="${o.id}" data-field="subjectToFinance">
+              <span>Subject to finance</span>
+            </label>
+            <label class="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+              <input type="checkbox" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-slate-300 dark:border-slate-600 dark:bg-slate-800 rounded" ${o.buildingPestInspection ? 'checked' : ''} data-id="${o.id}" data-field="buildingPestInspection">
+              <span>Building &amp; Pest</span>
+            </label>
+          </div>
+          ${hasNotes ? `
+            <div class="mt-5 rounded-xl border border-slate-200/80 dark:border-slate-700/80 bg-slate-50/80 px-4 py-3 dark:bg-slate-900/60">
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Offer notes</div>
+              <textarea class="mt-2 w-full resize-none rounded-lg border border-slate-200/70 bg-white/90 px-3 py-2 text-sm text-slate-700 focus:border-primary-500 focus:outline-none focus:ring-primary-500 dark:border-slate-700/70 dark:bg-slate-900/60 dark:text-slate-100" rows="${Math.max(2, Math.ceil(o.notes.length / 80))}" data-id="${o.id}" data-field="notes">${o.notes}</textarea>
+            </div>
+          ` : ''}
+        </article>
+      `;
+    }).join('');
 
-  // Mobile card view (using the same sorted offers)
-  const mobileCards = sortedOffers.map((o) => {
+    desktopContainer.innerHTML = `<div class="grid grid-cols-1 gap-4 lg:grid-cols-2">${cardMarkup}</div>`;
+  }
+
+  const mobileCards = sortedOffers.map((o, index) => {
     const interestToSettle = compoundInterest(state.loanAmount, state.annualRate, o.days, state.compounding);
     const totalToClearLoan = state.loanAmount + interestToSettle;
     const netVsLoan = o.amount - totalToClearLoan;
     const netClass = netVsLoan >= 0 ? 'text-green-700' : 'text-red-700';
     const buyerName = o.name && o.name.trim() ? o.name.trim() : '—';
+    const isBestOffer = index === 0;
+    const mobileClasses = isBestOffer
+      ? 'border border-primary-200/80 bg-primary-50/60 dark:border-primary-800/70 dark:bg-primary-900/20'
+      : 'border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800';
+    const bestBadge = isBestOffer
+      ? `<span class="mt-1 inline-flex items-center rounded-full bg-primary-100/80 px-2 py-0.5 text-[11px] font-medium text-primary-700 dark:bg-primary-900/40 dark:text-primary-200">Top offer</span>`
+      : '';
     return `
-      <div class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4">
+      <div class="${mobileClasses} rounded-lg p-4">
         <div class="flex justify-between items-start mb-3">
           <div>
             <div class="font-medium text-slate-900 dark:text-slate-100">${buyerName}</div>
             <div class="text-sm text-slate-500 dark:text-slate-400">Buyer</div>
+            ${bestBadge}
           </div>
           <button data-id="${o.id}" class="remove-offer text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400" title="Remove offer">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -283,6 +333,12 @@ function renderOffers() {
             </div>
           </div>
         </div>
+        ${o.notes && o.notes.trim() ? `
+        <div class="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
+          <div class="text-xs text-slate-500 dark:text-slate-400 mb-2">Notes:</div>
+          <textarea class="w-full text-sm text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded px-2 py-1 focus:border-primary-500 focus:ring-primary-500 resize-none" rows="${Math.max(2, Math.ceil(o.notes.length / 50))}" data-id="${o.id}" data-field="notes">${o.notes}</textarea>
+        </div>
+        ` : ''}
       </div>
     `;
   }).join('');
@@ -298,8 +354,8 @@ function renderOffers() {
     });
   });
 
-  // Bind edit inputs (both desktop and mobile)
-  document.querySelectorAll('input[data-field]').forEach((input) => {
+  // Bind edit inputs and textareas (both desktop and mobile)
+  document.querySelectorAll('input[data-field], textarea[data-field]').forEach((input) => {
     const eventType = input.type === 'checkbox' ? 'change' : 'blur';
     input.addEventListener(eventType, (e) => {
       const id = e.currentTarget.getAttribute('data-id');
@@ -309,6 +365,9 @@ function renderOffers() {
       if (offer) {
         if (input.type === 'checkbox') {
           offer[field] = e.currentTarget.checked;
+        } else if (input.tagName.toLowerCase() === 'textarea') {
+          // Handle textarea (notes)
+          offer[field] = e.currentTarget.value;
         } else {
           const value = toNumber(e.currentTarget.value);
           if (field === 'deposit') {
@@ -395,13 +454,15 @@ function setupEvents() {
     
     const id = Date.now().toString(36) + Math.random().toString(36).slice(2,6);
     const name = $("offerName").value.trim();
+    const notes = $("offerNotes").value.trim();
     const subjectToFinance = $("subjectToFinance").checked;
     const buildingPestInspection = $("buildingPestInspection").checked;
-    state.offers.push({ id, name, amount, days, deposit, subjectToFinance, buildingPestInspection });
+    state.offers.push({ id, name, amount, days, deposit, notes, subjectToFinance, buildingPestInspection });
     $("offerName").value = '';
     $("offerAmount").value = '';
     $("offerDays").value = '';
     $("offerDeposit").value = '';
+    $("offerNotes").value = '';
     $("subjectToFinance").checked = false;
     $("buildingPestInspection").checked = false;
     saveToStorage();
