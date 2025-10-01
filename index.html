@@ -158,24 +158,7 @@
 
         <div class="mt-4">
           <!-- Desktop table view -->
-          <div class="hidden sm:block overflow-x-auto">
-            <table class="min-w-full text-sm">
-              <thead>
-                <tr class="text-left text-slate-600 dark:text-slate-400 border-b border-slate-200 dark:border-slate-600">
-                  <th class="py-2 pr-3">Buyer</th>
-                  <th class="py-2 pr-3">Offer</th>
-                  <th class="py-2 pr-3">Settlement</th>
-                  <th class="py-2 pr-3">Deposit</th>
-                  <th class="py-2 pr-3">Finance</th>
-                  <th class="py-2 pr-3">B&P Inspection</th>
-                  <th class="py-2 pr-3">Interest to Settle</th>
-                  <th class="py-2 pr-3">Net vs Loan</th>
-                  <th class="py-2 pr-3"></th>
-                </tr>
-              </thead>
-              <tbody id="offersTbody"></tbody>
-            </table>
-          </div>
+          <div class="hidden sm:block" id="offersDesktop"></div>
           
           <!-- Mobile card view -->
           <div class="sm:hidden space-y-3" id="offersMobile"></div>
@@ -191,5 +174,3 @@
   <script src="script.js"></script>
 </body>
 </html>
-
-
